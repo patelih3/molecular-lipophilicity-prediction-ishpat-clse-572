@@ -104,12 +104,12 @@ def main():
     pred_maccs_scaled = model_maccs.predict(test_maccs)
     pred_maccs = scaler_maccs.inverse_transform(pred_maccs_scaled.reshape(-1, 1)).flatten()
     
-    # Calculate RMSE
-    rmse_morgan = mean_squared_error(test_y_morgan, pred_morgan, squared=False)
-    r2_morgan = r2_score(test_y_morgan, pred_morgan)
-    
-    rmse_maccs = mean_squared_error(test_y_maccs, pred_maccs, squared=False)
-    r2_maccs = r2_score(test_y_maccs, pred_maccs)
+# Calculate RMSE (using sqrt for older sklearn versions)
+rmse_morgan = np.sqrt(mean_squared_error(test_y_morgan, pred_morgan))
+r2_morgan = r2_score(test_y_morgan, pred_morgan)
+
+rmse_maccs = np.sqrt(mean_squared_error(test_y_maccs, pred_maccs))
+r2_maccs = r2_score(test_y_maccs, pred_maccs)
     
     # Print results
     print("="*60)
