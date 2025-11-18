@@ -15,12 +15,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 import warnings
 warnings.filterwarnings('ignore')
 
 # Import fingerprint functions from our module
-from fingerprints import get_morgan_fingerprints, get_maccs_keys
+from fingerprints import get_morgan_fp, get_maccs
 
 
 def main():
@@ -41,28 +41,30 @@ def main():
     data = pd.read_csv('Lipophilicity.csv')
     print(f"Dataset loaded: {len(data)} molecules")
     
+    target_col = 'exp'
+    
     # Split data
     train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
     print(f"Train set: {len(train_df)} molecules")
     print(f"Test set: {len(test_df)} molecules\n")
     
-    # Generate Morgan fingerprints
+    # Generate Morgan fingerprints using imported function
     print("Generating Morgan fingerprints...")
-    train_morgan, train_morgan_idx = get_morgan_fingerprints(train_df['smiles'].tolist())
-    test_morgan, test_morgan_idx = get_morgan_fingerprints(test_df['smiles'].tolist())
-    print(f"Morgan fingerprints generated (shape: {train_morgan.shape})")
+    train_morgan, train_morgan_idx = get_morgan_fp(train_df['smiles'].tolist())
+    test_morgan, test_morgan_idx = get_morgan_fp(test_df['smiles'].tolist())
+    print(f"Morgan FP shape: {train_morgan.shape}")
     
-    # Generate MACCS keys
+    # Generate MACCS keys using imported function
     print("Generating MACCS keys...")
-    train_maccs, train_maccs_idx = get_maccs_keys(train_df['smiles'].tolist())
-    test_maccs, test_maccs_idx = get_maccs_keys(test_df['smiles'].tolist())
-    print(f"MACCS keys generated (shape: {train_maccs.shape})\n")
+    train_maccs, train_maccs_idx = get_maccs(train_df['smiles'].tolist())
+    test_maccs, test_maccs_idx = get_maccs(test_df['smiles'].tolist())
+    print(f"MACCS shape: {train_maccs.shape}\n")
     
     # Get targets
-    train_y_morgan = train_df.iloc[train_morgan_idx]['exp'].values
-    test_y_morgan = test_df.iloc[test_morgan_idx]['exp'].values
-    train_y_maccs = train_df.iloc[train_maccs_idx]['exp'].values
-    test_y_maccs = test_df.iloc[test_maccs_idx]['exp'].values
+    train_y_morgan = train_df.iloc[train_morgan_idx][target_col].values
+    test_y_morgan = test_df.iloc[test_morgan_idx][target_col].values
+    train_y_maccs = train_df.iloc[train_maccs_idx][target_col].values
+    test_y_maccs = test_df.iloc[test_maccs_idx][target_col].values
     
     # Scale targets
     scaler_morgan = StandardScaler()
@@ -81,7 +83,7 @@ def main():
         validation_fraction=0.1
     )
     model_morgan.fit(train_morgan, train_y_morgan_scaled)
-    print(f"Morgan model trained ({model_morgan.n_iter_} iterations)")
+    print(f"Morgan model done - {model_morgan.n_iter_} iterations")
     
     # Train MACCS model
     print("Training MACCS keys model...")
@@ -93,7 +95,7 @@ def main():
         validation_fraction=0.1
     )
     model_maccs.fit(train_maccs, train_y_maccs_scaled)
-    print(f"MACCS model trained ({model_maccs.n_iter_} iterations)\n")
+    print(f"MACCS model done - {model_maccs.n_iter_} iterations\n")
     
     # Make predictions
     pred_morgan_scaled = model_morgan.predict(test_morgan)
@@ -104,24 +106,27 @@ def main():
     
     # Calculate RMSE
     rmse_morgan = mean_squared_error(test_y_morgan, pred_morgan, squared=False)
+    r2_morgan = r2_score(test_y_morgan, pred_morgan)
+    
     rmse_maccs = mean_squared_error(test_y_maccs, pred_maccs, squared=False)
+    r2_maccs = r2_score(test_y_maccs, pred_maccs)
     
     # Print results
     print("="*60)
     print("RESULTS")
     print("="*60)
     print(f"Conda Environment: {conda_env}")
-    print(f"Morgan Fingerprints RMSE: {rmse_morgan:.4f}")
-    print(f"MACCS Keys RMSE: {rmse_maccs:.4f}")
+    print(f"Morgan - RMSE: {rmse_morgan:.4f}, R2: {r2_morgan:.4f}")
+    print(f"MACCS  - RMSE: {rmse_maccs:.4f}, R2: {r2_maccs:.4f}")
     print("="*60)
     
     # Comparison
     if rmse_morgan < rmse_maccs:
         improvement = ((rmse_maccs - rmse_morgan) / rmse_maccs * 100)
-        print(f"\nMorgan fingerprints performed better by {improvement:.2f}%")
+        print(f"\nMorgan fingerprints performed better by {improvement:.1f}%")
     else:
         improvement = ((rmse_morgan - rmse_maccs) / rmse_morgan * 100)
-        print(f"\nMACCS keys performed better by {improvement:.2f}%")
+        print(f"\nMACCS keys performed better by {improvement:.1f}%")
 
 
 if __name__ == "__main__":
