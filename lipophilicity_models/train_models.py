@@ -111,22 +111,22 @@ r2_morgan = r2_score(test_y_morgan, pred_morgan)
 rmse_maccs = np.sqrt(mean_squared_error(test_y_maccs, pred_maccs))
 r2_maccs = r2_score(test_y_maccs, pred_maccs)
     
-    # Print results
-    print("="*60)
-    print("RESULTS")
-    print("="*60)
-    print(f"Conda Environment: {conda_env}")
-    print(f"Morgan - RMSE: {rmse_morgan:.4f}, R2: {r2_morgan:.4f}")
-    print(f"MACCS  - RMSE: {rmse_maccs:.4f}, R2: {r2_maccs:.4f}")
-    print("="*60)
+# Print results
+print("="*60)
+print("RESULTS")
+print("="*60)
+print(f"Conda Environment: {conda_env}")
+print(f"Morgan - RMSE: {rmse_morgan:.4f}, R2: {r2_morgan:.4f}")
+print(f"MACCS  - RMSE: {rmse_maccs:.4f}, R2: {r2_maccs:.4f}")
+print("="*60)
     
     # Comparison
-    if rmse_morgan < rmse_maccs:
-        improvement = ((rmse_maccs - rmse_morgan) / rmse_maccs * 100)
-        print(f"\nMorgan fingerprints performed better by {improvement:.1f}%")
-    else:
-        improvement = ((rmse_morgan - rmse_maccs) / rmse_morgan * 100)
-        print(f"\nMACCS keys performed better by {improvement:.1f}%")
+if rmse_morgan < rmse_maccs:
+    improvement = ((rmse_maccs - rmse_morgan) / rmse_maccs * 100)
+    print(f"\nMorgan fingerprints performed better by {improvement:.1f}%")
+else:
+    improvement = ((rmse_morgan - rmse_maccs) / rmse_morgan * 100)
+    print(f"\nMACCS keys performed better by {improvement:.1f}%")
 
 
 if __name__ == "__main__":
